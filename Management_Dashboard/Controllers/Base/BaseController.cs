@@ -3,7 +3,7 @@ using ManagementDashboard_Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Management_Dashboard.Controllers.Base
+namespace Management_Dashboard.Controllers
 {
     [ApiController]
     [Route("api/[controller]/[action]")]

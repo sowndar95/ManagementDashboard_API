@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ManagementDashboard_Entities.Base
+namespace ManagementDashboard_Entities
 {
     public sealed class ApplicationSettings
     {

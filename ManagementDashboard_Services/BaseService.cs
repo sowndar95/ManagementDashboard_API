@@ -3,7 +3,6 @@ using MongoDB.Driver;
 using System.Linq.Expressions;
 using System.Text.Json;
 using ManagementDashboard_Entities;
-using ManagementDashboard_Entities.Base;
 
 namespace ManagementDashboard_Services
 {

@@ -4,9 +4,9 @@ using System.Text.Json.Serialization;
 
 namespace ManagementDashboard_Entities;
 
-public abstract class BaseEnitity
+public abstract class BaseEntity
 {
-    public BaseEnitity()
+    public BaseEntity()
     {
         CollectionName = GetType().Name;
     }
