@@ -32,7 +32,19 @@ namespace Management_Dashboard.Controllers
         [HttpGet]
         public async Task<ActionResult<IList<UserProfile>>> GetEmployeesListByManager(Guid id)
         {
-             var result = await ((UserProfileService)service).GetEmployeesByManager(id);
+             var result = await ((UserProfileService)service).GetEmployeesListByManager(id);
+
+            return result.ToList();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<ActionResult<IList<UserProfile>>> GetManagerHierarchy(Guid id)
+        {
+            var result = await ((UserProfileService)service).GetManagerHierarchy(id);
 
             return result.ToList();
         }
