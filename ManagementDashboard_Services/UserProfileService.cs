@@ -49,6 +49,7 @@ namespace ManagementDashboard_Services
             //    var subManagers = result1.Where(x => secondLevel.Any(x => x.User == x.ManagerId));
 
             //}
+
             //return lstManager;
 
             List<UserProfile> lstManager = new List<UserProfile>();
@@ -94,7 +95,5 @@ namespace ManagementDashboard_Services
             var result = await base.FindOne(expression);
             return result;
         }
-UserCo
-        
     }
 }
