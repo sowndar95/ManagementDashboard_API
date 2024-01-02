@@ -23,6 +23,7 @@ public sealed class UserProfile : ManagementDashboardEntityBase
     public string Email { get; set; } = null!;
     public string Phone { get; set; } = string.Empty;
     public Guid? Designation { get; set; }
+    public Guid? OrganizationId { get; set; }
 
     #region Status
     public void ActivateUser(bool isActivate)

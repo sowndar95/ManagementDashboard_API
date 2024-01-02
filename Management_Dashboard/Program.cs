@@ -1,5 +1,6 @@
 using Management_Dashboard.Services;
 using ManagementDashboard_Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
@@ -12,6 +13,21 @@ var applicationSettings = builder.Configuration.GetSection(nameof(ApplicationSet
 builder.Services.Configure<ApplicationSettings>(options => builder.Configuration.GetSection(nameof(ApplicationSettings)).Bind(options));
 builder.Services.AddSingleton<ApplicationSettings>(x => x.GetRequiredService<IOptions<ApplicationSettings>>().Value);
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(applicationSettings!.DatabaseSettings.ConnectionString));
+
+
+//MongoDB Configuration
+builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+{
+    options.User.RequireUniqueEmail = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+})
+.AddDefaultTokenProviders()
+.AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>(applicationSettings!.DatabaseSettings.ConnectionString, applicationSettings.DatabaseSettings.Database);
+
+
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

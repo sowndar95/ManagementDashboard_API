@@ -2,6 +2,7 @@ using Management_Dashboard.Controllers;
 using ManagementDashboard_Entities;
 using ManagementDashboard_Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Management_Dashboard.Controllers
 {
@@ -29,10 +30,11 @@ namespace Management_Dashboard.Controllers
         /// Get all Employees under Manager.
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<UserProfile>> GetEmployeesListByManager(Guid id)
+        public async Task<ActionResult<IList<UserProfile>>> GetEmployeesListByManager(Guid id)
         {
-            var result = await ((UserProfileService)service).GetEmployeesByManager(id);
-            return result;
+             var result = await ((UserProfileService)service).GetEmployeesByManager(id);
+
+            return result.ToList();
         }
 
         /// <summary>

@@ -5,11 +5,11 @@ VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Management_Dashboard", "Management_Dashboard\Management_Dashboard.csproj", "{F7A14A59-E9BE-4028-BB1B-FD462BBA9CE6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagementDashboard_Services", "ManagementDashboard_Services\ManagementDashboard_Services.csproj", "{34955392-D9A0-44D4-9CBF-84E4C4CDAD15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagementDashboard_Services", "ManagementDashboard_Services\ManagementDashboard_Services.csproj", "{34955392-D9A0-44D4-9CBF-84E4C4CDAD15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagementDashboard_Entities", "ManagementDashboard_Entities\ManagementDashboard_Entities.csproj", "{9439EE95-F809-4339-B97A-1D032FB05C75}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagementDashboard_Entities", "ManagementDashboard_Entities\ManagementDashboard_Entities.csproj", "{9439EE95-F809-4339-B97A-1D032FB05C75}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagementDashboard_Utilites", "ManagementDashboard_Utilites\ManagementDashboard_Utilites.csproj", "{FA05B4B7-8051-44CB-B1D5-142E51B1DD6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManagementDashboard_Utilites", "ManagementDashboard_Utilites\ManagementDashboard_Utilites.csproj", "{FA05B4B7-8051-44CB-B1D5-142E51B1DD6A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
