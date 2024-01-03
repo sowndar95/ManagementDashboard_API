@@ -11,6 +11,7 @@ namespace Management_Dashboard.Services
             //service.AddDataProtection();
 
             service.AddScoped<UserProfileService>();
+            service.AddScoped<TimeSheetService>();
 
             return service;
         }

@@ -1,4 +1,5 @@
 ﻿using ManagementDashboard_Entities;
+using ManagementDashboard_Utilites.Common;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
 using System;
@@ -36,7 +37,7 @@ namespace ManagementDashboard_Services
             var userStatus = ManagementDashboard_Utilites.Common.AppConstants.Status;
 
             List<UserProfile> lstEmployee = new List<UserProfile>();
-            List<Guid> userIds = new List<Guid>();
+            List<Guid> userIds = new();
 
             var result = _userManager.Users?.Where(f => f.OrganizationId == orgId && f.Status == userStatus).ToList();
 
@@ -47,68 +48,6 @@ namespace ManagementDashboard_Services
             return lstEmployee;
         }
 
-        public async Task<IList<UserProfile>> GetManagerHierarchy1(Guid managerId)
-        {
-            var orgId = new Guid(ManagementDashboard_Utilites.Common.AppConstants.OrganizationId);
-            var roleId = new Guid(ManagementDashboard_Utilites.Common.AppConstants.ManagerRoleId);
-            var userStatus = ManagementDashboard_Utilites.Common.AppConstants.Status;
-
-            //var result = (await base.GetAll()).Where(x => x.ManagerId == id).ToList();
-
-            //List<UserProfile> lstManager = new List<UserProfile>();
-            //var result = await base.GetAll();
-            //var topManagers = result.Where(x => x.ManagerId == id).ToList();
-            //if (result.Count > 0)
-            //{                
-            //    lstManager = topManagers.ToList();
-            //    lstManager.Insert(0, result.Where(x => x.User == id).FirstOrDefault());
-            //    //lstManager.Insert(0, new UserProfile() { Id = id });
-            //    //var subManagers = result.Select(x => x.User).Except(topManagers.Select(y => y.User)).ToList();
-            //    var secondLevel = result.Except(topManagers).ToList();
-            //    var result1 = secondLevel.Where(a => lstManager.Any(b => a.ManagerId == b.User));
-
-            //    var subManagers = result1.Where(x => secondLevel.Any(x => x.User == x.ManagerId));
-            //}
-
-            //return lstManager;
-
-
-            List<Guid> userIds = new List<Guid>();
-
-            var applicationUsers = _userManager.Users?.Where(f => f.OrganizationId == orgId && f.Status == userStatus).ToList();
-
-            if (applicationUsers == null)
-            {
-                return new List<UserProfile>();
-            }
-
-            var userList = applicationUsers.Where(x => x.Roles.Contains(roleId)).ToList();
-
-            if (userList != null && userList.Any())
-            {
-                var ids = userList.Select(x => x.Id).Distinct().ToList();
-                userIds.AddRange(ids);
-            }
-
-            if (userIds == null || !userIds.Any())
-            {
-                return new List<UserProfile>();
-            }
-
-            userIds = userIds.Distinct().ToList();
-
-            var result = (await Find(f => f.Organization == orgId
-                                        && userIds.Contains(f.User)))
-                         .Select(s => new UserProfile()
-                         {
-                             User = s.Id,
-                             UserCode = s.UserCode,
-                             FirstName = s.FirstName,
-                             LastName = s.LastName,
-                         }).ToList();
-
-            return result;
-        }
 
         public async Task<IList<UserProfile>> GetManagerHierarchy(Guid managerId)
         {
@@ -116,59 +55,63 @@ namespace ManagementDashboard_Services
             var orgId = new Guid(ManagementDashboard_Utilites.Common.AppConstants.OrganizationId);
             var roleId = new Guid(ManagementDashboard_Utilites.Common.AppConstants.ManagerRoleId);
             var userStatus = ManagementDashboard_Utilites.Common.AppConstants.Status;
+            List<Guid> userIds = new List<Guid>();
+            //var applicationUsers = _userManager.Users?.Where(f => f.OrganizationId == orgId && f.Status == userStatus).ToList();
 
-            var applicationUsers = _userManager.Users?.Where(f => f.OrganizationId == orgId && f.Status == userStatus).ToList();
+            //if (applicationUsers == null || applicationUsers.Count == 0)
+            //{
+            //    return new List<UserProfile>();
+            //}
 
-            if (applicationUsers == null || applicationUsers.Count == 0)
+            //var userList = applicationUsers.Where(x => x.Roles.Contains(roleId)).ToList();
+
+            //if (userList != null)
+            //{
+            var users = await base.Find(f => f.Organization == orgId && f.ManagerId == managerId);
+            var topManager = await base.FindOne(x => x.Organization == orgId && x.User == managerId);
+
+            if (topManager != null)
             {
-                return new List<UserProfile>();
-            }
+                userIds.Add(topManager.User);
 
-            var userList = applicationUsers.Where(x => x.Roles.Contains(roleId)).ToList();
-
-            if (userList != null)
-            {
-                var users = await base.GetAll();
-                var topManager = users.Where(x => x.User == managerId).ToList();
-
-                if (topManager != null)
+                foreach (var item in users)
                 {
-                    var id = topManager.Select(x => x.User).SingleOrDefault();
-                    var userIds = await GetSubManagerIds(users, id);
+                    var allUsers = await base.Find(f => f.Organization == orgId);
 
-                    if (userIds != null)
+                    var userIDs = await GetSubManagerIds(allUsers, item.User);
+                    userIds.AddRange(userIDs);
+                }
+
+               userIds = userIds.Distinct().ToList();
+
+                if (userIds != null)
+                {
+                    lstManagers = (await Find(f => f.Organization == orgId
+                                   && userIds.Contains(f.User)))
+                    .Select(s => new UserProfile()
                     {
-                        lstManagers = (await Find(f => f.Organization == orgId
-                                       && userIds.Contains(f.User)))
-                        .Select(s => new UserProfile()
-                        {
-                            User = s.Id,
-                            UserCode = s.UserCode,
-                            FirstName = s.FirstName,
-                            LastName = s.LastName,
-                        }).ToList();
-                        
-                    }
+                        User = s.Id,
+                        UserCode = s.UserCode,
+                        FirstName = s.FirstName,
+                        LastName = s.LastName,
+                    }).ToList();
+
                 }
             }
+            //}
 
-             return lstManagers;
+            return lstManagers;
         }
 
         private async Task<List<Guid>> GetSubManagerIds(IList<UserProfile> users, Guid managerId)
         {
-            List<Guid> userIds = new List<Guid>();
-            userIds.Add(managerId);
-            bool flag = false;
-            if (users == null)
-            {
-                return new List<Guid>();
-            }
+            List<Guid> userIds = new() { };
 
             foreach (var item in users)
             {
                 if (item.ManagerId == managerId)
                 {
+                    userIds.Add(managerId);
                     var guid = item.User;
                     if (users.Where(x => x.ManagerId == guid).Any())
                     {
@@ -179,13 +122,14 @@ namespace ManagementDashboard_Services
 
             return userIds;
         }
+
         public async Task<List<UserProfile>> GetEmployeesListByManager(Guid id)
         {
             List<UserProfile> lstEmployees = new List<UserProfile>();
-            var result = await base.GetAll();
-            lstEmployees = result.Where(x => x.ManagerId == id).ToList();
 
-            return lstEmployees;
+            var users = await base.Find(f => f.Organization == new Guid(AppConstants.OrganizationId) && f.ManagerId == id);
+
+            return (List<UserProfile>)users;
         }
 
         public async Task<UserProfile> GetEmployeeByName(string name)
@@ -194,5 +138,6 @@ namespace ManagementDashboard_Services
             var result = await base.FindOne(expression);
             return result;
         }
+
     }
 }
