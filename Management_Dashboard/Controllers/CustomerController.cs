@@ -9,7 +9,7 @@ namespace Management_Dashboard.Controllers
     {
         private readonly ILogger<CustomerController> _logger;
 
-        public CustomerController(ILogger<CustomerController> logger, CustomerService service) : base(service)
+        public CustomerController(ILogger<CustomerController> logger, CustomerService service ) : base(service)
         {
             _logger = logger;
         }

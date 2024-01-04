@@ -11,7 +11,7 @@ namespace Management_Dashboard.Controllers
 
         private readonly ILogger<DashboardController> _logger;
 
-        public DashboardController(ILogger<DashboardController> logger, UserProfileService service) : base(service)
+        public DashboardController(ILogger<DashboardController> logger, UserProfileService service ) : base(service)
         {
             _logger = logger;
         }
@@ -30,7 +30,6 @@ namespace Management_Dashboard.Controllers
         public async Task<ActionResult<IList<UserProfile>>> GetManagerHierarchy(Guid id)
         {
             var result = await ((UserProfileService)service).GetManagerHierarchy(id);
-
             return result.ToList();
         }
 

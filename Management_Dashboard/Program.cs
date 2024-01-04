@@ -1,3 +1,4 @@
+using Management_Dashboard.Filters;
 using Management_Dashboard.Services;
 using ManagementDashboard_Entities;
 using Microsoft.AspNetCore.Identity;
@@ -7,13 +8,12 @@ using MongoDB.Driver;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
-
+string baseUrl = builder.Configuration["ApiBaseUrl"];
 // Inject Application Settings 
 var applicationSettings = builder.Configuration.GetSection(nameof(ApplicationSettings)).Get<ApplicationSettings>();
 builder.Services.Configure<ApplicationSettings>(options => builder.Configuration.GetSection(nameof(ApplicationSettings)).Bind(options));
 builder.Services.AddSingleton<ApplicationSettings>(x => x.GetRequiredService<IOptions<ApplicationSettings>>().Value);
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(applicationSettings!.DatabaseSettings.ConnectionString));
-
 
 //MongoDB Configuration
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
@@ -51,11 +51,16 @@ builder.Services.AddSwaggerGen(c =>
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     c.IncludeXmlComments(xmlPath);
+
+    //Include Base Url
+    c.DocumentFilter<BasePathDocumentFilter>(baseUrl);
 });
 
 builder.Services.AddServices(builder.Configuration);
 
 var app = builder.Build();
+
+app.UsePathBase("/"+baseUrl);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

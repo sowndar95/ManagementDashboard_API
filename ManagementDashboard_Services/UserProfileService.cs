@@ -1,4 +1,5 @@
 ﻿using ManagementDashboard_Entities;
+using ManagementDashboard_Services;
 using ManagementDashboard_Utilites.Common;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
@@ -127,7 +128,9 @@ namespace ManagementDashboard_Services
         {
             List<UserProfile> lstEmployees = new List<UserProfile>();
             List<UserProfile> lstManagers = new List<UserProfile>();
+
             lstManagers.AddRange(await GetManagerHierarchy(id));
+
             foreach (var manager in lstManagers)
             {
                 var users = await base.Find(f => f.Organization == new Guid(AppConstants.OrganizationId) && f.ManagerId == manager.User);

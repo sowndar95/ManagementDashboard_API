@@ -6,11 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Management_Dashboard.Controllers
 {
     [ApiController]
-    [Route("sandstar-dev-api.azurewebsites.net/api/[controller]/[action]")]
+    [Route("api/[controller]/[action]")]
     public abstract class BaseController<T> : ControllerBase where T : ManagementDashboardEntityBase, new()
     {
         protected readonly BaseService<T> service;
-
         public BaseController(BaseService<T> baseService)
         {
             service = baseService;
