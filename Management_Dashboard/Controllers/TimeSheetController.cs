@@ -18,9 +18,9 @@ namespace Management_Dashboard.Controllers
         /// Get all Employee Details.
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IList<TimesheetModel>>> GetTimeSheetEntries(Guid mangerId, DateTime fromDate, DateTime toDate, string option)
+        public async Task<ActionResult<IList<TimesheetModel>>> GetTimeSheetEntries(Guid mangerId, DateTime fromDate, int interval, int mode, string option, int timeoff, Guid projectId)
         {
-            var result = await ((TimeSheetService)service).GetEmployeeTimesheetEntries(mangerId, fromDate, toDate, option);
+            var result = await ((TimeSheetService)service).GetEmployeeTimesheetEntries(mangerId, fromDate, interval, mode, option, timeoff, projectId);
             return result.ToList();
         }
     }

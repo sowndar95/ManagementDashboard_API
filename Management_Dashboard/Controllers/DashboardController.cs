@@ -17,30 +17,15 @@ namespace Management_Dashboard.Controllers
         }
 
         /// <summary>
-        /// Get all Employee Details.
+        /// Get Manager Hierarchy.
         /// </summary>
-        [HttpGet]
-        public async Task<ActionResult<IList<UserProfile>>> GetAllUsers()
-        {
-            var result = await ((UserProfileService)service).GetAll();
-            return result.ToList();
-        }
-
-        /// <summary>
-        /// Get all Employees under Manager.
-        /// </summary>
-        [HttpGet]
-        public async Task<ActionResult<IList<UserProfile>>> GetEmployeesListByManager(Guid id)
-        {
-             var result = await ((UserProfileService)service).GetEmployeesListByManager(id);
-
-            return result.ToList();
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <remarks>
+        /// This method is used to retrive hierarchy of Managers who are reporting to that provided ManagerID
+        /// </remarks>
+        /// <param name="id">The unique identifier of the manager.</param>
+        /// <returns>Returns a hierarchy of Managers who are reporting to that provided ManagerID.</returns>
+        /// <response code="200">Returns the list of Managers.</response>
+        /// <response code="401">If the user is not authenticated.</response>
         [HttpGet]
         public async Task<ActionResult<IList<UserProfile>>> GetManagerHierarchy(Guid id)
         {
@@ -50,13 +35,20 @@ namespace Management_Dashboard.Controllers
         }
 
         /// <summary>
-        /// Get all Employees by Name.
+        /// Get all Employees under Manager.
         /// </summary>
+        /// <remarks>
+        /// This method is used to retrive Employees who are reporting to that provided ManagerID.
+        /// </remarks>
+        /// <param name="id">The unique identifier of the manager.</param>
+        /// <returns>Returns a list of Employees who are reporting to that provided ManagerID.</returns>
+        /// <response code="200">Returns the list of Employees.</response>
+        /// <response code="401">If the user is not authenticated.</response>
         [HttpGet]
-        public async Task<ActionResult<UserProfile>> GetEmployeeByName(string name)
+        public async Task<ActionResult<IList<UserProfile>>> GetEmployeesListByManager(Guid id)
         {
-            var result = await ((UserProfileService)service).GetEmployeeByName(name);
-            return result;
-        }
+            var result = await ((UserProfileService)service).GetEmployeesListByManager(id);
+            return result.ToList();
+        }      
     }
 }

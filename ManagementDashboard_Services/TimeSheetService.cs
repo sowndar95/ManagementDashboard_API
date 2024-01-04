@@ -20,10 +20,10 @@ namespace ManagementDashboard_Services
             _userProfileService = userProfileService;
         }
 
-        public async Task<List<TimesheetModel>> GetEmployeeTimesheetEntries(Guid managerId, DateTime fromDate, int interval, int mode, string option, int timeoff, int projectId)
+        public async Task<List<TimesheetModel>> GetEmployeeTimesheetEntries(Guid managerId, DateTime fromDate, int interval, int mode, string option, int timeoff, Guid customerId)
         {
-            var employees = await _userProfileService.GetEmployeesListByManager(managerId);
-            List<TimeSheet> timesheets = new List<TimeSheet>();
+            List<UserProfile> employees = new();
+            List<TimeSheet> timesheets = new();
             List<TimesheetModel> lstUserTimesheet = new();
             DateTime toDate;
             int totalInterval = (interval * 7) - 1;
@@ -39,12 +39,15 @@ namespace ManagementDashboard_Services
                 toDate = endOfMonth;
             }
 
-            if (projectId > 0)
+            if (customerId != Guid.Empty)
             {
-                //        lstUserTimesheet = lstUserTimesheet.Where(l => l.ProjectId == model.ProjectId).ToList();
+                employees = await _userProfileService.GetEmployeesListByCustomer(managerId, customerId);
             }
-            else
+            else 
             {
+                employees = await _userProfileService.GetEmployeesListByManager(managerId);
+            }
+
                 foreach (var employee in employees)
                 {
                     var timesheetEntries = await base.Find(f => f.User == employee.User && f.Date >= fromDate && f.Date <= toDate);
@@ -70,9 +73,8 @@ namespace ManagementDashboard_Services
                                           //NonProductivity = d.Where(x => x. == false).Sum(s => s.Hours),
                                       }).OrderByDescending(g => g.MonthYrPart).ToList();
                         lstUserTimesheet.AddRange(result);
-                    }
+                    }                
                 }
-            }
 
             foreach (var item in lstUserTimesheet)
             {

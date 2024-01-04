@@ -18,6 +18,7 @@ namespace Management_Dashboard.Controllers
 
         #region Default Routes
         [HttpGet]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<ActionResult<IEnumerable<T>>> GetAll()
         {
             var result = await service.GetAll();
@@ -25,6 +26,7 @@ namespace Management_Dashboard.Controllers
         }
 
         [HttpPost]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public virtual async Task<ActionResult<T>> AddOrUpdate(T model)
         {
             var result = await service.Insert(model);
@@ -32,6 +34,7 @@ namespace Management_Dashboard.Controllers
         }
 
         [HttpPost]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public virtual async Task<ActionResult<IEnumerable<T>>> AddMany(List<T> model)
         {
             var result = await service.InsertMany(model);
@@ -39,6 +42,7 @@ namespace Management_Dashboard.Controllers
         }
 
         [HttpGet]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<ActionResult<T>> Get(Guid id)
         {
             var result = await service.Find(id);
@@ -46,6 +50,7 @@ namespace Management_Dashboard.Controllers
         }
 
         [HttpPost]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<ActionResult<T>> Delete(Guid id)
         {
             //Load the Data which will be deleted
