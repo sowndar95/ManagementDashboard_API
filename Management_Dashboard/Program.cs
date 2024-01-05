@@ -52,6 +52,7 @@ builder.Services.AddSwaggerGen(c =>
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     c.IncludeXmlComments(xmlPath);
 
+
     //Include Base Url
     c.DocumentFilter<BasePathDocumentFilter>(baseUrl);
 });
@@ -60,7 +61,7 @@ builder.Services.AddServices(builder.Configuration);
 
 var app = builder.Build();
 
-app.UsePathBase("/"+baseUrl);
+app.UsePathBase("/" + baseUrl);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -21,7 +21,7 @@ namespace ManagementDashboard_Services
             _userProfileService = userProfileService;
         }
 
-        public async Task<List<TimesheetModel>> GetEmployeeTimesheetEntries(Guid managerId, DateTime fromDate, int interval, int mode, string option, int timeoff, Guid customerId)
+        public async Task<List<TimesheetModel>> GetEmployeeTimesheetEntries(Guid managerId, DateTime fromDate, int interval, int mode, string option, Guid customerId)
         {
             List<UserProfile> employees = new();
             List<TimeSheet> timesheets = new();
@@ -67,7 +67,7 @@ namespace ManagementDashboard_Services
                                       UserId = d.Key.userCode,
                                       UserCode = employee.UserCode,
                                       UserName = employee.FirstName + " " + employee.LastName,
-                                      Hours = d.Sum(s => s.Hours),
+                                      Hours = d.Sum(s => s.Hours), //include mins
                                       Count = d.Count(),
                                       TimeOffHours = d.Where(x => x.Project == new Guid(AppConstants.TimeOffProject)).Sum(s => s.Hours),
                                       //NonProductivity = d.Where(x => x. == false).Sum(s => s.Hours),

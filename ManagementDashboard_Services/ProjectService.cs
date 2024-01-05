@@ -23,5 +23,19 @@ namespace ManagementDashboard_Services
             var result = await base.Find(f => f.Customer == customerId);
             return result.ToList();
         }
+
+        public async Task<List<Customer>> GetCustomersByProjectId(List<Guid> projectIds)
+        {
+            List<Customer> lstCustomer = new List<Customer>();
+            var orgId = new Guid(ManagementDashboard_Utilites.Common.AppConstants.OrganizationId);
+
+            lstCustomer = (await base.Find(x => x.Organization == orgId && projectIds.Contains(x.Id)))
+                .Select(s => new Customer()
+                {
+                    Id = s.Customer,
+                    CustomerName = s.CustomerName,
+                }).ToList();
+            return lstCustomer;
+        }
     }
 }

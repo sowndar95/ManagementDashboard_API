@@ -167,5 +167,11 @@ namespace ManagementDashboard_Services
             return result;
         }
 
+        public async Task<UserProfile> GetEmployeeById(Guid employeeId)
+        {
+            var userStatus = ManagementDashboard_Utilites.Common.AppConstants.Status;
+            return await base.FindOne(f => f.User == employeeId && f.Status == userStatus);
+        }
+
     }
 }

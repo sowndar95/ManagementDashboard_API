@@ -26,9 +26,9 @@ namespace Management_Dashboard.Controllers
         /// <param name="mode">Type of Report (0 => Weekly or 1 => Monthly).</param>
         /// <response code="200">Returns Employees Productivity Report.</response>
         [HttpGet]
-        public async Task<ActionResult<IList<TimesheetModel>>> GetTimeSheetEntries(Guid mangerId, DateTime fromDate, int interval, int mode, string option, int timeoff, Guid projectId)
+        public async Task<ActionResult<IList<TimesheetModel>>> GetTimeSheetEntries(Guid mangerId, DateTime fromDate, int interval, int mode, string option, Guid projectId)
         {
-            var result = await ((TimeSheetService)service).GetEmployeeTimesheetEntries(mangerId, fromDate, interval, mode, option, timeoff, projectId);
+            var result = await ((TimeSheetService)service).GetEmployeeTimesheetEntries(mangerId, fromDate, interval, mode, option, projectId);
             return result.ToList();
         }
     }
