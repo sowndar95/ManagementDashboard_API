@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static MongoDB.Driver.WriteConcern;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ManagementDashboard_Services
@@ -21,7 +23,27 @@ namespace ManagementDashboard_Services
             _userProfileService = userProfileService;
         }
 
-        public async Task<List<TimesheetModel>> GetEmployeeTimesheetEntries(Guid managerId, DateTime fromDate, int interval, int mode, string option, Guid customerId)
+        public async Task<List<Customer>> GetClientListByManagerId(Guid userId, DateTime fromDate, Guid orgId)
+        {
+            var result = new List<Customer>();
+            fromDate = Convert.ToDateTime(fromDate.ToString("MM-dd-yyyy")); //Default get data for 6 month from "From Date"
+            var toDate = Convert.ToDateTime(fromDate.AddMonths(6).ToString("MM-dd-yyyy")); //Default get data for 6 month from "From Date"
+            var timeSheetsEntries = await base.Find(x => x.Organization == orgId && x.User == userId);// && f.Date >= fromDate && f.Date <= toDate);
+
+            if (timeSheetsEntries != null && timeSheetsEntries.Count > 0)
+            {
+                result = timeSheetsEntries.ToList().Where(x => x.Date >= fromDate && x.Date <= toDate)
+                .Select(s => new Customer()
+                {
+                    Id = s.Customer,
+                    CustomerName = s.CustomerName,
+                }).DistinctBy(x => x.Id).ToList();
+            }
+
+            return result;
+        }
+
+        public async Task<List<TimesheetModel>> GetEmployeeProductivity(Guid managerId, DateTime fromDate, int interval, int mode, string option, Guid customerId)
         {
             List<UserProfile> employees = new();
             List<TimeSheet> timesheets = new();
@@ -67,7 +89,8 @@ namespace ManagementDashboard_Services
                                       UserId = d.Key.userCode,
                                       UserCode = employee.UserCode,
                                       UserName = employee.FirstName + " " + employee.LastName,
-                                      Hours = d.Sum(s => s.Hours), //include mins
+                                      Hours = d.Sum(s => s.Hours) + (d.Sum(s => s.Minutes) / 60),
+                                      Minutes = d.Sum(s => s.Minutes) % 60,
                                       Count = d.Count(),
                                       TimeOffHours = d.Where(x => x.Project == new Guid(AppConstants.TimeOffProject)).Sum(s => s.Hours),
                                       //NonProductivity = d.Where(x => x. == false).Sum(s => s.Hours),
@@ -98,7 +121,8 @@ namespace ManagementDashboard_Services
                                           WeeklyStart = string.Format("{0}/{1}", d.Key.week, d.Key.month),
                                           UserCode = employee.UserCode,
                                           UserName = employee.FirstName + " " + employee.LastName,
-                                          Hours = d.Sum(s => s.Hours),
+                                          Hours = d.Sum(s => s.Hours) + (d.Sum(s => s.Minutes) / 60),
+                                          Minutes = d.Sum(s => s.Minutes) % 60,
                                           Count = d.Count(),
                                           TimeOffHours = d.Where(x => x.Project == new Guid(AppConstants.TimeOffProject)).Sum(s => s.Hours),
                                           //NonProductivity = d.Where(x => x.IsProductivity == false).Sum(s => s.Hours),
@@ -132,7 +156,7 @@ namespace ManagementDashboard_Services
                     int monthpart = Convert.ToInt16(dtweekPart[1]);
                     int yearpart = lstUserTimesheet.FirstOrDefault().Date.Year;
                     days = 5; // Consider only working days. Removed DayOfWeek.Saturday & DayOfWeek.Sunday
-                }              
+                }
 
                 item.Hours = item.Hours - item.TimeOffHours; // Minus the Hours and  Time Off Hours from the collection
                 int NoofWorkingHr = days * 8; // 5 * 8 = 40 ==> Total days multiply with 8 hours 
@@ -162,258 +186,262 @@ namespace ManagementDashboard_Services
                 yield return day;
         }
 
-        //public List<Productivity> EmployeeProductivity(ProjectTimeEntry model)
-        //{
+        public IEnumerable<DateTime> EachDay(DateTime from, DateTime thru)
+        {
+            for (var day = from.Date; day.Date <= thru.Date; day = day.AddDays(1))
+                yield return day;
+        }
 
-        //    UserTimesheetDetailsModel userTimesheet = new UserTimesheetDetailsModel();
-        //    List<UserTimesheetInHours> list = new List<UserTimesheetInHours>();
-        //    List<UserTimesheetInHours> lstUserTimesheet = new List<UserTimesheetInHours>();
-        //    List<Productivity> productivities = new List<Productivity>();
+        #region Non_Split_TimeEntries_ByUser
+        public async Task<List<TimesheetModel>> GetNonSplitTimesheetEntriesByUser(Guid managerId, DateTime fromDate, int entryCount)
+        {
+            List<TimesheetModel> lstUserTimesheet = new();
+            List<TimesheetModel> productivities = new();
+            int entryCounts = 0;
+            int daysInMonth = DateTime.DaysInMonth(fromDate.Year, fromDate.Month);
+            DateTime endOfMonth = new(fromDate.Year, fromDate.Month, daysInMonth);
+            DateTime toDate = endOfMonth;
 
-        //    userTimesheet.userID = model.userID;
-        //    userTimesheet.OrganizationId = model.OrganizationId;
-        //    userTimesheet.Fromdate = model.Fromdate;
-        //    userTimesheet.Option = model.Option;
-        //    userTimesheet.ProjectIds = model.ProjectId > 1 ? model.ProjectId.ToString() : string.Empty;
-        //    int totalInterval = (model.Interval * 7) - 1;
-        //    if (model.Mode == 0) // 0: Weekly, 1:Monthly
-        //    {
-        //        userTimesheet.ToDate = userTimesheet.Fromdate.AddDays(totalInterval);
-        //    }
-        //    else
-        //    {
-        //        DateTime interval = userTimesheet.Fromdate.AddMonths(--model.Interval);
-        //        int daysInMonth = DateTime.DaysInMonth(interval.Year, interval.Month);
-        //        DateTime endOfMonth = new DateTime(interval.Year, interval.Month, daysInMonth);
-        //        userTimesheet.ToDate = endOfMonth;
-        //    }
+            if (entryCount == 0)
+            {
+                entryCounts = 2;
+            }
+            else
+            {
+                entryCounts = entryCount;
+            }
 
-        //    //List<HolidayMgmtApp> lstHoliday = new List<HolidayMgmtApp>();
-        //    //lstHoliday = GetHolidays().Where(x => x.IsWeekEnd == false).ToList();
+            List<UserProfile> employees = new();
+            employees = await _userProfileService.GetEmployeesListByManager(managerId);
 
-        //    lstUserTimesheet = GetUserTimesheetDetailsByManager(userTimesheet, null);
-        //    if (model.ProjectId > 0)
-        //    {
-        //        lstUserTimesheet = lstUserTimesheet.Where(l => l.ProjectId == model.ProjectId).ToList();
-        //    }
-        //    if (model.Mode == 0) // 0: Weekly, 1:Monthly
-        //    {
-        //        // Weekly
-        //        productivities = GetWeeklyProductivity(lstUserTimesheet, userTimesheet, totalInterval);
-        //    }
-        //    else // Monthly
-        //    {
-        //        if (userTimesheet.Option.ToLower() == "employee")
-        //        {
-        //            productivities = (from p in lstUserTimesheet.ToList()
-        //                              group p by new
-        //                              {
-        //                                  month = p.Date.Month,
-        //                                  year = p.Date.Year,
-        //                                  userCode = p.UserCode,
-        //                                  userName = p.UserName
-        //                              } into d
-        //                              select new Productivity()
-        //                              {
-        //                                  MonthYrPart = string.Format("{0}/{1}", d.Key.month, d.Key.year),
-        //                                  UserCode = d.Key.userCode,
-        //                                  UserName = d.Key.userName,
-        //                                  Hours = d.Sum(s => s.Hours),
-        //                                  Count = d.Count(),
-        //                                  TimeOffHours = d.Where(x => x.ProjectId == 8).Sum(s => s.Hours),
-        //                                  NonProductivity = d.Where(x => x.IsProductivity == false).Sum(s => s.Hours),
-        //                              }).OrderByDescending(g => g.MonthYrPart).ToList();
+            foreach (var employee in employees)
+            {
+                var timesheetEntries = await base.Find(f => f.User == employee.User && f.Date >= fromDate && f.Date <= toDate);
+                DateTime dtfromDate = fromDate;
 
-        //        }
-        //        else if (userTimesheet.Option.ToLower() == "customer")
-        //        {
-        //            productivities = (from p in lstUserTimesheet.ToList()
-        //                              group p by new
-        //                              {
-        //                                  month = p.Date.Month,
-        //                                  year = p.Date.Year,
-        //                                  userCode = p.UserCode,
-        //                                  userName = p.UserName
+                foreach (DateTime day in EachDay(fromDate, toDate))
+                {
+                    DateTime dtToDate = day.AddHours(23).AddMinutes(59);
+                    int getDay = day.Day;
 
-        //                              } into d
-        //                              select new Productivity()
-        //                              {
-        //                                  MonthYrPart = string.Format("{0}/{1}", d.Key.month, d.Key.year),
-        //                                  UserCode = d.Key.userCode,
-        //                                  UserName = d.Key.userName,
-        //                                  Hours = d.Sum(s => s.Hours),
-        //                                  Count = d.Count(),
-        //                                  TimeOffHours = d.Where(x => x.ProjectId == 8).Sum(s => s.Hours),
-        //                                  NonProductivity = d.Where(x => x.IsProductivity == false).Sum(s => s.Hours),
-        //                              }).OrderByDescending(g => g.MonthYrPart).ToList();
-        //        }
+                    var productindex = (from p in timesheetEntries.ToList().Where(x => x.Date >= dtfromDate && x.Date <= dtToDate)
+                                        group p by new
+                                        {
+                                            date = day,
+                                            week = getDay,
+                                            month = p.Date.Month,
+                                            userId = p.User,
+                                        } into d
+                                        select new TimesheetModel()
+                                        {
+                                            Date = d.Key.date,
+                                            MonthYrPart = string.Format("{0}/{1}", d.Key.week, d.Key.month),
+                                            UserId = d.Key.userId,
+                                            UserCode = employee.UserCode,
+                                            UserName = employee.FirstName + " " + employee.LastName,
+                                            Hours = d.Sum(s => s.Hours) + (d.Sum(s => s.Minutes) / 60),
+                                            Minutes = d.Sum(s => s.Minutes) % 60,
+                                            Count = d.Select(s => s.User).Count(),
+                                            TimeOffHours = d.Where(x => x.Project == new Guid(AppConstants.TimeOffProject)).Sum(s => s.Hours),
+                                            //NonProductivity = d.Where(x => x.IsProductivity == false).Sum(s => s.Hours),
+                                        }).ToList();
 
-        //        list = lstUserTimesheet.ToList().GroupBy(x => new { x.Organization, x.Project, x.ProjectTask, x.Date }).Select(x => new UserTimesheetInHours()
-        //        {
-        //            Organization = x.Key.Organization,
-        //            Project = x.Key.Project,
-        //            ProjectTask = x.Key.ProjectTask,
-        //            Hours = x.Sum(s => s.Hours),
-        //            Date = x.Key.Date,
-        //        }).ToList();
+                    var nonSplitUsers = productindex.Where(x => x.Count <= entryCount);
 
+                    productivities.AddRange(nonSplitUsers);
+                    dtfromDate = day.AddDays(1);
+                }
+            }
 
-        //        foreach (var item in productivities)
-        //        {
-        //            int NoOfHoliday = 0;
-        //            int days = 0;
+            lstUserTimesheet = productivities.ToList().GroupBy(x => new { x.UserName, x.UserCode, x.UserId }).Select(x => new TimesheetModel()
+            {
+                UserId = x.Key.UserId,
+                UserName = x.Key.UserName,
+                UserCode = x.Key.UserCode,
+                Count = x.Select(s => s.UserName).Count(),
+                Hours = (int)(x.Sum(s => s.Hours) + x.Sum(s => s.Minutes) / 60),
+                Minutes = (int)(x.Sum(s => s.Minutes) % 60),
+                NonProductivity = x.Sum(s => s.NonProductivity),
+                TimeOffHours = x.Sum(s => s.TimeOffHours),
+            }).ToList();
 
-        //            string[] dtyrPart = item.MonthYrPart.Split('/');
-        //            int monthpart = Convert.ToInt16(dtyrPart[0]);
-        //            int yearpart = Convert.ToInt16(dtyrPart[1]);
+            foreach (var item in lstUserTimesheet)
+            {
+                int days = 0;
+                int monthpart = fromDate.Month;
+                int yearpart = fromDate.Year;
 
-        //            //NoOfHoliday = lstHoliday.Where(x => x.HolidayDate.Year == yearpart && x.HolidayDate.Month == monthpart).Count();
+                days = Enumerable.Range(1, DateTime.DaysInMonth(yearpart, monthpart))
+                    .Select(day => new DateTime(yearpart, monthpart, day))
+                    .Count(d => d.DayOfWeek != DayOfWeek.Saturday &&
+                                 d.DayOfWeek != DayOfWeek.Sunday);
+                item.Hours = item.Hours - item.TimeOffHours; // Minus the Hours and  Time Off Hours from the collection
+                int NoofWorkingHr = days * 8;
+                int sam = (Convert.ToInt32(item.TimeOffHours) / 8);
+                item.Count = item.Count - (Convert.ToInt32(item.TimeOffHours) / 8);// Minus the Count from Time Off Hours and divided by 8
+                                                                                   //int ActualWorkingHr = NoofWorkingHr - HolidayHr;
+                int ActualWorkingHr = NoofWorkingHr - Convert.ToInt32(item.TimeOffHours);  // Minus the No of Working hours & Holiday hours & TimeOffHours
 
-        //            days = Enumerable.Range(1, DateTime.DaysInMonth(yearpart, monthpart))
-        //                .Select(day => new DateTime(yearpart, monthpart, day))
-        //                .Count(d => d.DayOfWeek != DayOfWeek.Saturday &&
-        //                             d.DayOfWeek != DayOfWeek.Friday); //Get Actual Working from the month exculded Saturday and Sunday
+                decimal ProductivityHr = item.Hours - Convert.ToInt32(item.TimeOffHours);// - NonProductiviry; // Minus the Hours and Non Productivity from the Collection
 
-        //            item.Hours = item.Hours - item.TimeOffHours; // Minus the Hours and  Time Off Hours from the collection
-        //            int NoofWorkingHr = days * 8; // 5 * 8 = 40 ==> Total days multiply with 8 hours 
-        //                                          //int HolidayHr = NoOfHoliday * 8;  // 0 * 8 = 0 ==> No Of Holiday multiply with 8 hours
+                decimal percentage = 0;
+                if (ActualWorkingHr > 0)
+                    percentage = (ProductivityHr / ActualWorkingHr) * 100;
 
-        //            int ActualWorkingHr = NoofWorkingHr - Convert.ToInt32(item.TimeOffHours); //NoofWorkingHr - HolidayHr - Convert.ToInt32(item.TimeOffHours);  // Minus the No of Working hours & Holiday hours & TimeOffHours
+                item.Percentage = Math.Round(percentage).ToString();
+            }
+            lstUserTimesheet = lstUserTimesheet.Where(l => l.Count > 0).OrderByDescending(x => x.Count).ThenBy(u => u.UserName).ToList();
 
-        //            item.WorkingDays = days - (Convert.ToInt32(item.TimeOffHours) / 8); //days - NoOfHoliday - (Convert.ToInt32(item.TimeOffHours) / 8);
-        //            item.Count = item.Count - (Convert.ToInt32(item.TimeOffHours) / 8);// Minus the Count from Time Off Hours and divided by 8
+            return lstUserTimesheet;
+        }
+        #endregion
 
-        //            decimal NonProductiviry = item.NonProductivity - item.TimeOffHours; // Get Non Productivity from the Collection
-        //            decimal ProductivityHr = item.Hours - NonProductiviry; // Minus the Hours and Non Productivity from the Collection
-        //            item.NonProductivity = NonProductiviry;
-        //            item.ProductivityHours = ProductivityHr;
-        //            decimal percentage = 0;
-        //            if (ActualWorkingHr > 0)
-        //                percentage = (ProductivityHr / ActualWorkingHr) * 100; // Dividing Productivity Hours / Actual Working Hours * Multiply 100
+        #region Non_Split_TimeEntries_ByUser_ByWeekly
+        public async Task<List<NonSplitEntry>> GetNonSplitTimesheetEntriesByUserByWeekly(Guid managerId, DateTime fromDate, int entryCount, Guid userId)
+        {
+            List<TimesheetModel> lstUserTimesheet = new();
+            List<NonSplitEntry> lstNonSplitEntries = new();
 
-        //            item.Percentage = Math.Round(percentage).ToString();
-        //        }
-        //    }
-        //    return productivities;
-        //}
+            int daysInMonth = DateTime.DaysInMonth(fromDate.Year, fromDate.Month);
+            DateTime endOfMonth = new(fromDate.Year, fromDate.Month, daysInMonth);
+            DateTime toDate = endOfMonth;
+            int entryCounts = 0;
 
+            if (entryCount == 0)
+            {
+                entryCounts = 2;
+            }
+            else
+            {
+                entryCounts = entryCount;
+            }
 
+           UserProfile employee = await _userProfileService.GetEmployeeById(userId);
+            //employees = await _userProfileService.GetEmployeesListByManager(managerId);
 
-        //public List<Productivity> GetWeeklyProductivity(List<UserTimesheetInHours> lstUserTimesheet, UserTimesheetDetailsModel userTimesheet, int interval)
-        //{
-        //    DateTime fromDate = userTimesheet.Fromdate;
-        //    DateTime dtfromDate = userTimesheet.Fromdate;
-        //    DateTime toDate = fromDate.AddDays(interval);
-        //    List<Productivity> productivities = new List<Productivity>();
-        //    if (userTimesheet.Option.ToLower() == "employee")
-        //    {
-        //        foreach (DateTime day in EachWeek(fromDate, toDate))
-        //        {
-        //            DateTime dtToDate = day.AddDays(6).AddHours(23).AddMinutes(59);
-        //            List<Productivity> productivitiesindex = new List<Productivity>();
-        //            int getDay = day.Day;
-        //            int getMonth = dtfromDate.Month;
+            if (employee != null)
+            {
+                var timesheetEntries = await base.Find(f => f.User == userId && f.Date >= fromDate && f.Date <= toDate);
+                DateTime dtfromDate = fromDate;
 
-        //            productivitiesindex = (from p in lstUserTimesheet.ToList().Where(x => x.Date >= dtfromDate && x.Date <= dtToDate)
-        //                                   group p by new
-        //                                   {
-        //                                       week = getDay,
-        //                                       month = getMonth,
-        //                                       userCode = p.UserCode,
-        //                                       userName = p.UserName
-        //                                   } into d
-        //                                   select new Productivity()
-        //                                   {
-        //                                       WeeklyStart = string.Format("{0}/{1}", d.Key.week, d.Key.month),
-        //                                       UserCode = d.Key.userCode,
-        //                                       UserName = d.Key.userName,
-        //                                       Hours = d.Sum(s => s.Hours),
-        //                                       Count = d.Count(),
-        //                                       TimeOffHours = d.Where(x => x.ProjectId == 8).Sum(s => s.Hours), // ProjectTaskId=14 is holiday & handle separatly using holiday Calender
-        //                                       NonProductivity = d.Where(x => x.IsProductivity == false).Sum(s => s.Hours),
-        //                                   }).OrderByDescending(g => g.WeeklyStart).ToList();
+                foreach (DateTime day in EachDay(fromDate, toDate))
+                {
+                    DateTime dtToDate = day.AddHours(23).AddMinutes(59);
+                    int getDay = day.Day;
 
-        //            productivities.AddRange(productivitiesindex);
-        //            dtfromDate = day.AddDays(7);
-        //        }
-        //    }
-        //    else if (userTimesheet.Option.ToLower() == "customer")
-        //    {
-        //        foreach (DateTime day in EachWeek(fromDate, toDate))
-        //        {
-        //            DateTime dtToDate = day.AddDays(6);
-        //            List<Productivity> productivitiesindex = new List<Productivity>();
-        //            int getDay = day.Day;
-        //            productivitiesindex = (from p in lstUserTimesheet.ToList().Where(x => x.Date >= dtfromDate && x.Date <= dtToDate)
-        //                                   group p by new
-        //                                   {
-        //                                       week = getDay,
-        //                                       month = p.Date.Month,
-        //                                       userCode = p.UserCode,
-        //                                       userName = p.UserName
-        //                                   } into d
-        //                                   select new Productivity()
-        //                                   {
-        //                                       WeeklyStart = string.Format("{0}/{1}", d.Key.week, d.Key.month),
-        //                                       UserCode = d.Key.userCode,
-        //                                       UserName = d.Key.userName,
-        //                                       Hours = d.Sum(s => s.Hours),
-        //                                       Count = d.Count(),
-        //                                       NonProductivity = d.Where(x => x.IsProductivity == false).Sum(s => s.Hours),
-        //                                   }).OrderByDescending(g => g.WeeklyStart).ToList();
+                    var productindex = (from p in timesheetEntries.ToList().Where(x => x.Date >= dtfromDate && x.Date <= dtToDate)
+                                        group p by new
+                                        {
+                                            date = day,
+                                            week = getDay,
+                                            month = p.Date.Month,
+                                            userId = p.User,
+                                        } into d
+                                        select new TimesheetModel()
+                                        {
+                                            Date = d.Key.date,
+                                            MonthYrPart = string.Format("{0}/{1}", d.Key.week, d.Key.month),
+                                            UserId = d.Key.userId,
+                                            UserCode = employee.UserCode,
+                                            UserName = employee.FirstName + " " + employee.LastName,
+                                            Hours = d.Sum(s => s.Hours) + (d.Sum(s => s.Minutes) / 60),
+                                            Minutes = d.Sum(s => s.Minutes) % 60,
+                                            Count = d.Select(s => s.User).Count(),
+                                            TimeOffHours = d.Where(x => x.Project == new Guid(AppConstants.TimeOffProject)).Sum(s => s.Hours),
+                                            //NonProductivity = d.Where(x => x.IsProductivity == false).Sum(s => s.Hours),
+                                        }).ToList();
 
-        //            productivities.AddRange(productivitiesindex);
-        //            dtfromDate = day.AddDays(7);
-        //        }
+                    var nonSplitUsers = productindex.Where(x => x.Count <= entryCount);
 
-        //    }
-        //    try
-        //    {
-        //        foreach (var item in productivities)
-        //        {
-        //            int NoOfHoliday = 0;
-        //            int days = 0;
-        //            string[] dtweekPart = item.WeeklyStart.Split('/');
-        //            int daypart = Convert.ToInt16(dtweekPart[0]);
-        //            int monthpart = Convert.ToInt16(dtweekPart[1]);
-        //            int yearpart = lstUserTimesheet.FirstOrDefault().Date.Year;
+                    lstUserTimesheet.AddRange(nonSplitUsers);
+                    dtfromDate = day.AddDays(1);
+                }
+            }
+            
 
-        //            //DateTime dtFromHolidayDate = Convert.ToDateTime(yearpart + "/" + monthpart + "/" + daypart);
-        //            //DateTime dtToHolidayDate = dtFromHolidayDate.AddDays(6);
-        //            //foreach (DateTime day in EachWeek(dtFromHolidayDate, dtToHolidayDate))
-        //            //{
-        //            //    NoOfHoliday = GetHolidaysByFromToDate(dtFromHolidayDate, dtToHolidayDate); //lstHoliday.Where(x => x.HolidayDate.Year == yearWeekpart && x.HolidayDate.Month == monthWeekpart && x.HolidayDate.Day == dayWeekpart).Count();
-        //            //}
-        //            days = 5; // Consider only working days. Removed DayOfWeek.Saturday & DayOfWeek.Sunday
+            if (lstUserTimesheet.Count > 0)
+            {
+                DateTime dtfromDate = fromDate;
+                foreach (DateTime day in EachWeek(fromDate, toDate))
+                {
+                    DateTime dtToDate = day.AddDays(6);
+                    NonSplitEntry productivitiesindex = new();
+                    List<NonSplitDrillDonw> data = new List<NonSplitDrillDonw>();
+                    int getDay = day.Day;
 
-        //            item.Hours = item.Hours - item.TimeOffHours; // Minus the Hours and  Time Off Hours from the collection
-        //            int NoofWorkingHr = days * 8; // 5 * 8 = 40 ==> Total days multiply with 8 hours 
-        //            int HolidayHr = NoOfHoliday * 8;  // 0 * 8 = 0 ==> No Of Holiday multiply with 8 hours
+                    productivitiesindex = (from p in lstUserTimesheet.ToList().Where(x => x.Date >= dtfromDate && x.Date <= dtToDate)
+                                           group p by new
+                                           {
+                                               week = getDay,
+                                               month = p.Date.Month,
+                                               year = p.Date.Year,
+                                               userId = p.UserId,
+                                               userCode = p.UserCode,
+                                               userName = p.UserName
+                                           } into d
+                                           select new NonSplitEntry()
+                                           {
+                                               WeeklyStart = string.Format("{0}/{1}/{2}", d.Key.week, d.Key.month, d.Key.year),
+                                               UserId = d.Key.userId,
+                                               UserCode = d.Key.userCode,
+                                               UserName = d.Key.userName,
+                                               Hours = d.Sum(s => s.Hours),
+                                               Count = d.Count(),
+                                               TimeOffHours = d.Sum(s => s.TimeOffHours),
+                                               NonProductivity = d.Sum(x => x.NonProductivity),
+                                           }).OrderByDescending(g => g.WeeklyStart).FirstOrDefault();
 
-        //            item.Count = item.Count - (Convert.ToInt32(item.TimeOffHours) / 8);// Minus the Count from Time Off Hours and divided by 8
-        //            int ActualWorkingHr = NoofWorkingHr - Convert.ToInt32(item.TimeOffHours); //NoofWorkingHr - HolidayHr - Convert.ToInt32(item.TimeOffHours);  // Minus the No of Working hours & Holiday hours & TimeOffHours
+                    data = (from p in lstUserTimesheet.ToList().Where(x => x.Date >= dtfromDate && x.Date <= dtToDate && x.TimeOffHours <= 0)
+                            group p by new
+                            {
+                                date = p.Date,
+                                userId = p.UserId,
+                                userCode = p.UserCode,
+                                userName = p.UserName
+                            } into d
+                            select new NonSplitDrillDonw()
+                            {
+                                Date = string.Format("{0}", d.Key.date),
+                                Count = d.Count(),
+                            }).OrderByDescending(g => g.Date).ToList();
+                    if (productivitiesindex != null)
+                    {
+                        productivitiesindex.nonSplitDrillDonws = data;
+                        lstNonSplitEntries.Add(productivitiesindex);
+                        dtfromDate = day.AddDays(7);
+                    }
+                }
+            }
 
-        //            item.WorkingDays = days - (Convert.ToInt32(item.TimeOffHours) / 8);//days - NoOfHoliday - (Convert.ToInt32(item.TimeOffHours) / 8);
-        //            decimal NonProductiviry = item.NonProductivity - item.TimeOffHours;
-        //            decimal ProductivityHr = item.Hours - NonProductiviry;  //  Minus the hours and Non Productiviry hours
-        //            item.NonProductivity = NonProductiviry;
-        //            item.ProductivityHours = ProductivityHr;
-        //            decimal percentage = 0;
-        //            if (ActualWorkingHr > 0)
-        //                percentage = (ProductivityHr / ActualWorkingHr) * 100;  // Divided Productivity hours and ActualWorking hours and multiply by 100 to get the percentage
+            foreach (var item in lstNonSplitEntries)
+            {
+                int days = 0;
+                int monthpart = fromDate.Month;
+                int yearpart = fromDate.Year;
 
-        //            item.Percentage = Math.Round(percentage).ToString();
+                days = Enumerable.Range(1, DateTime.DaysInMonth(yearpart, monthpart))
+                    .Select(day => new DateTime(yearpart, monthpart, day))
+                    .Count(d => d.DayOfWeek != DayOfWeek.Saturday &&
+                                 d.DayOfWeek != DayOfWeek.Sunday);
+                item.Hours = item.Hours - item.TimeOffHours; // Minus the Hours and  Time Off Hours from the collection
+                int NoofWorkingHr = days * 8;
 
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
+                item.Count = item.Count - (Convert.ToInt32(item.TimeOffHours) / 8);// Minus the Count from Time Off Hours and divided by 8
+                                                                                   //int ActualWorkingHr = NoofWorkingHr - HolidayHr;
+                int ActualWorkingHr = NoofWorkingHr - Convert.ToInt32(item.TimeOffHours);//NoofWorkingHr - HolidayHr - Convert.ToInt32(item.TimeOffHours);  // Minus the No of Working hours & Holiday hours & TimeOffHours
 
-        //    }
-        //    return productivities;
-        //}
+                decimal ProductivityHr = item.Hours - Convert.ToInt32(item.TimeOffHours);// - NonProductiviry; // Minus the Hours and Non Productivity from the Collection
 
+                decimal percentage = 0;
+                if (ActualWorkingHr > 0)
+                    percentage = (ProductivityHr / ActualWorkingHr) * 100;
+
+                item.Percentage = Math.Round(percentage).ToString();
+            }
+            lstNonSplitEntries = lstNonSplitEntries.Where(l => l.Count > 0).OrderByDescending(x => x.Count).ThenBy(u => u.UserName).ToList();
+
+            return lstNonSplitEntries;
+            }
+            #endregion
+        }
     }
-}
-
-

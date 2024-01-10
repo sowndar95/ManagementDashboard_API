@@ -18,14 +18,15 @@ namespace Management_Dashboard.Controllers
         /// Get Customer Details
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="fromDate"></param>
+        /// <param name="orgId"></param>
         /// <returns>Return Customer id and Customer Name</returns>
         [HttpGet]
-        public async Task<ActionResult<IList<Customer>>> GetCustomerListByManagerId(Guid userId)
+        public async Task<ActionResult<IList<Customer>>> GetClientList(Guid userId, DateTime fromDate, Guid orgId)
         {
-            var result = await ((CustomerService)service).GetCustomerListByManagerId(userId);
+            var result = await ((CustomerService)service).GetClientListByManagerId(userId, fromDate, orgId);
             return result.ToList();
         }
-
 
     }
 }

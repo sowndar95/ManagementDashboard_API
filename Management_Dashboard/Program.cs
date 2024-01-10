@@ -67,7 +67,7 @@ app.UsePathBase("/" + baseUrl);
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI();   
 }
 app.UseCors();
 app.UseHttpsRedirection();
