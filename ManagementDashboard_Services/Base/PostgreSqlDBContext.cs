@@ -18,6 +18,13 @@ namespace ManagementDashboard_Services
         public DbSet<Postgre_Customer> customer { get; set; }
         public DbSet<Postgre_Project> project { get; set; }
         public DbSet<Postgre_UserInfo> userinfo_mgmtapp { get; set; }
+        public DbSet<Postgre_ProjectAllocation> projectAllocation { get; set; }
+        public DbSet<Postgre_MobileScreen> mobileScreen { get; set; }
+        public DbSet<Postgre_MobileWidget> mobileWidget { get; set; }
+        public DbSet<Postgre_UserOrganizationXRef> userOrganizationXRef { get; set; }
+        public DbSet<Postgre_ProjectTaskUserXRef> projectTaskUserXRef { get; set; }
+
+
 
         public async Task<Postgre_Customer> GetCustomerByIdAsync(int projectId)
         {
@@ -46,6 +53,38 @@ namespace ManagementDashboard_Services
         public async Task<Postgre_UserInfo> InsertUserAsync(Postgre_UserInfo user)
         {
             await userinfo_mgmtapp.AddAsync(user);
+            await SaveChangesAsync();
+            return user;
+        }
+        public async Task<Postgre_ProjectAllocation> InsertProjectAllocationAsync(Postgre_ProjectAllocation user)
+        {
+            await projectAllocation.AddAsync(user);
+            await SaveChangesAsync();
+            return user;
+        }
+        public async Task<Postgre_MobileScreen> InsertMobileScreenAsync(Postgre_MobileScreen user)
+        {
+            await mobileScreen.AddAsync(user);
+            await SaveChangesAsync();
+            return user;
+        }
+        public async Task<Postgre_MobileWidget> InsertMobileWidgetAsync(Postgre_MobileWidget user)
+        {
+            await mobileWidget.AddAsync(user);
+            await SaveChangesAsync();
+            return user;
+        }
+
+        public async Task<Postgre_UserOrganizationXRef> InsertUserOrganizationXRefAsync(Postgre_UserOrganizationXRef user)
+        {
+            await userOrganizationXRef.AddAsync(user);
+            await SaveChangesAsync();
+            return user;
+        }
+
+        public async Task<Postgre_ProjectTaskUserXRef> InserProjectTaskUserXRefAsync(Postgre_ProjectTaskUserXRef user)
+        {
+            await projectTaskUserXRef.AddAsync(user);
             await SaveChangesAsync();
             return user;
         }

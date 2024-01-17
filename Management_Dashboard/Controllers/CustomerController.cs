@@ -246,9 +246,9 @@ namespace Management_Dashboard.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Postgre_UserInfo>>> GetProjectAllocation()
+        public async Task<ActionResult<List<Postgre_ProjectAllocation>>> GetProjectAllocation()
         {
-            List<Postgre_UserInfo> postgre_User = new();
+            List<Postgre_ProjectAllocation> postgre_User = new();
             try
             {
                 var builder = new ConfigurationBuilder();
@@ -269,45 +269,12 @@ namespace Management_Dashboard.Controllers
                             {
                                 while (reader.Read())
                                 {
-                                    Postgre_UserInfo user = new Postgre_UserInfo
+                                    Postgre_ProjectAllocation user = new Postgre_ProjectAllocation
                                     {
-                                        EmployeeCode = reader["Employee Code"] != DBNull.Value ? reader["Employee Code"].ToString() : null,
-                                        EmployeeName = reader["Employee Name"] != DBNull.Value ? reader["Employee Name"].ToString() : null,
-                                        Email = reader["Email"] != DBNull.Value ? reader["Email"].ToString() : null,
-                                        Designation = reader["Designation"] != DBNull.Value ? reader["Designation"].ToString() : null,
-                                        Level = reader["Level"] != DBNull.Value ? reader["Level"].ToString() : null,
-                                        Department = reader["Department"] != DBNull.Value ? reader["Department"].ToString() : null,
-                                        Location = reader["Location"] != DBNull.Value ? reader["Location"].ToString() : null,
-                                        Mobile = reader["Mobile"] != DBNull.Value ? reader["Mobile"].ToString() : null,
-                                        DOB = reader["DOB"] != DBNull.Value ? (DateTime?)DateTime.SpecifyKind((DateTime)reader["DOB"], DateTimeKind.Utc) : null,
-                                        Team = reader["Team"] != DBNull.Value ? reader["Team"].ToString() : null,
-                                        ReportingManagerCode = reader["Reporting Manager Code"] != DBNull.Value ? reader["Reporting Manager Code"].ToString() : null,
-                                        ReportingManagerName = reader["Reporting Manager Name"] != DBNull.Value ? reader["Reporting Manager Name"].ToString() : null,
-                                        ReportingManagerEmail = reader["Reporting Manager Email"] != DBNull.Value ? reader["Reporting Manager Email"].ToString() : null,
-                                        DOJ = reader["DOJ"] != DBNull.Value ? (DateTime?)DateTime.SpecifyKind((DateTime)reader["DOJ"], DateTimeKind.Utc) : null,
-                                        Photo = reader["Photo"] != DBNull.Value ? reader["Photo"].ToString() : null,
-                                        LWD = reader["LWD"] != DBNull.Value ? (DateTime?)DateTime.SpecifyKind((DateTime)reader["LWD"], DateTimeKind.Utc) : null,
-                                        EffectiveDateOfReporting = reader["Effective Date Of Reporting"] != DBNull.Value ? (DateTime?)DateTime.SpecifyKind((DateTime)reader["Effective Date Of Reporting"], DateTimeKind.Utc) : null,
-                                        Modified = reader["Modified"] != DBNull.Value ? (DateTime?)DateTime.SpecifyKind((DateTime)reader["Modified"], DateTimeKind.Utc) : null,
-                                        CreatedDate = reader["Created Date"] != DBNull.Value ? (DateTime?)DateTime.SpecifyKind((DateTime)reader["Created Date"], DateTimeKind.Utc) : null,
-                                        CreatedBy = reader["Created By"] != DBNull.Value ? reader["Created By"].ToString() : null,
-                                        ModifiedBy = reader["Modified By"] != DBNull.Value ? reader["Modified By"].ToString() : null,
-                                        Active = reader["Active"] != DBNull.Value ? (bool?)reader["Active"] : null,
-                                        Platinum = reader["Platinum"] != DBNull.Value ? reader["Platinum"].ToString() : null,
-                                        Gold = reader["Gold"] != DBNull.Value ? reader["Gold"].ToString() : null,
-                                        Silver = reader["Silver"] != DBNull.Value ? reader["Silver"].ToString() : null,
-                                        BloodGroup = reader["Blood Group"] != DBNull.Value ? reader["Blood Group"].ToString() : null,
-                                        UPN = reader["UPN"] != DBNull.Value ? reader["UPN"].ToString() : null,
-                                        ItemType = reader["Item Type"] != DBNull.Value ? reader["Item Type"].ToString() : null,
-                                        Path = reader["Path"] != DBNull.Value ? reader["Path"].ToString() : null,
-                                        IsLoginEnabled = reader["IsLoginEnabled"] != DBNull.Value ? (bool?)reader["IsLoginEnabled"] : null,
-                                        ModifiedDate = reader["Modified Date"] != DBNull.Value ? (DateTime?)DateTime.SpecifyKind((DateTime)reader["Modified Date"], DateTimeKind.Utc) : null,
-                                        IsDeleted = reader["IsDeleted"] != DBNull.Value ? (bool?)reader["IsDeleted"] : null,
-                                        AccessLevel = reader["AccessLevel"] != DBNull.Value ? (int)reader["AccessLevel"] : null,
-                                        IsGroup = reader["IsGroup"] != DBNull.Value ? (bool?)reader["IsGroup"] : null,
+                                       
 
                                     };
-                                    await AddUser(user);
+                                    await AddProjectAllocation(user);
                                     postgre_User.Add(user);
                                 }
                                 reader.Close();
@@ -327,6 +294,207 @@ namespace Management_Dashboard.Controllers
             var count = postgre_User.Count();
             return postgre_User;
         }
+
+        [HttpGet]
+        public async Task<ActionResult<List<Postgre_MobileScreen>>> GetMobileScreen()
+        {
+            List<Postgre_MobileScreen> postgre_User = new();
+            try
+            {
+                var builder = new ConfigurationBuilder();
+                builder.AddJsonFile("appsettings.json", optional: false);
+
+                var configuration = builder.Build();
+                using (SqlConnection connection = new SqlConnection(configuration.GetConnectionString("SQLConnectionString").ToString()))
+                {
+                    connection.Open();
+
+                    string selectQuery = "SELECT * FROM [dbo].[UserInfo_MgmtApp]";
+
+                    using (SqlCommand command = new SqlCommand(selectQuery, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    Postgre_MobileScreen user = new Postgre_MobileScreen
+                                    {
+
+
+                                    };
+                                    await AddMobileScreen(user);
+                                    postgre_User.Add(user);
+                                }
+                                reader.Close();
+                            }
+                            else
+                            {
+                                Console.WriteLine("No records found.");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving data from SQL: " + ex.Message);
+            }
+            var count = postgre_User.Count();
+            return postgre_User;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<List<Postgre_MobileWidget>>> GetMobileWidget()
+        {
+            List<Postgre_MobileWidget> postgre_User = new();
+            try
+            {
+                var builder = new ConfigurationBuilder();
+                builder.AddJsonFile("appsettings.json", optional: false);
+
+                var configuration = builder.Build();
+                using (SqlConnection connection = new SqlConnection(configuration.GetConnectionString("SQLConnectionString").ToString()))
+                {
+                    connection.Open();
+
+                    string selectQuery = "SELECT * FROM [dbo].[UserInfo_MgmtApp]";
+
+                    using (SqlCommand command = new SqlCommand(selectQuery, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    Postgre_MobileWidget user = new Postgre_MobileWidget
+                                    {
+
+
+                                    };
+                                    await AddMobileWidget(user);
+                                    postgre_User.Add(user);
+                                }
+                                reader.Close();
+                            }
+                            else
+                            {
+                                Console.WriteLine("No records found.");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving data from SQL: " + ex.Message);
+            }
+            var count = postgre_User.Count();
+            return postgre_User;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<List<Postgre_UserOrganizationXRef>>> GetUserXRef()
+        {
+            List<Postgre_UserOrganizationXRef> postgre_User = new();
+            try
+            {
+                var builder = new ConfigurationBuilder();
+                builder.AddJsonFile("appsettings.json", optional: false);
+
+                var configuration = builder.Build();
+                using (SqlConnection connection = new SqlConnection(configuration.GetConnectionString("SQLConnectionString").ToString()))
+                {
+                    connection.Open();
+
+                    string selectQuery = "SELECT * FROM [dbo].[UserInfo_MgmtApp]";
+
+                    using (SqlCommand command = new SqlCommand(selectQuery, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    Postgre_UserOrganizationXRef user = new Postgre_UserOrganizationXRef
+                                    {
+
+
+                                    };
+                                    await AddUserOrganizationXRef(user);
+                                    postgre_User.Add(user);
+                                }
+                                reader.Close();
+                            }
+                            else
+                            {
+                                Console.WriteLine("No records found.");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving data from SQL: " + ex.Message);
+            }
+            var count = postgre_User.Count();
+            return postgre_User;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<List<Postgre_ProjectTaskUserXRef>>> GetProjectXRef()
+        {
+            List<Postgre_ProjectTaskUserXRef> postgre_User = new();
+            try
+            {
+                var builder = new ConfigurationBuilder();
+                builder.AddJsonFile("appsettings.json", optional: false);
+
+                var configuration = builder.Build();
+                using (SqlConnection connection = new SqlConnection(configuration.GetConnectionString("SQLConnectionString").ToString()))
+                {
+                    connection.Open();
+
+                    string selectQuery = "SELECT * FROM [dbo].[UserInfo_MgmtApp]";
+
+                    using (SqlCommand command = new SqlCommand(selectQuery, connection))
+                    {
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    Postgre_ProjectTaskUserXRef user = new Postgre_ProjectTaskUserXRef
+                                    {
+
+
+                                    };
+                                    await AddProjectTaskUserXRef(user);
+                                    postgre_User.Add(user);
+                                }
+                                reader.Close();
+                            }
+                            else
+                            {
+                                Console.WriteLine("No records found.");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving data from SQL: " + ex.Message);
+            }
+            var count = postgre_User.Count();
+            return postgre_User;
+        }
+
 
         [HttpGet]
         public async Task<ActionResult> GetAllCustomers()
@@ -396,6 +564,94 @@ namespace Management_Dashboard.Controllers
             try
             {
                 var insertedCustomer = await _dbContext.InsertUserAsync(newUser);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving data from SQL: " + ex.Message);
+            }
+            return newUser;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Postgre_ProjectAllocation>> AddProjectAllocation([FromBody] Postgre_ProjectAllocation newUser)
+        {
+            if (newUser == null)
+            {
+                return BadRequest("Invalid customer data.");
+            }
+            try
+            {
+                var insertedCustomer = await _dbContext.InsertProjectAllocationAsync(newUser);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving data from SQL: " + ex.Message);
+            }
+            return newUser;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Postgre_MobileScreen>> AddMobileScreen([FromBody] Postgre_MobileScreen newUser)
+        {
+            if (newUser == null)
+            {
+                return BadRequest("Invalid customer data.");
+            }
+            try
+            {
+                var insertedCustomer = await _dbContext.InsertMobileScreenAsync(newUser);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving data from SQL: " + ex.Message);
+            }
+            return newUser;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Postgre_MobileWidget>> AddMobileWidget([FromBody] Postgre_MobileWidget newUser)
+        {
+            if (newUser == null)
+            {
+                return BadRequest("Invalid customer data.");
+            }
+            try
+            {
+                var insertedCustomer = await _dbContext.InsertMobileWidgetAsync(newUser);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving data from SQL: " + ex.Message);
+            }
+            return newUser;
+        }
+        [HttpPost]
+        public async Task<ActionResult<Postgre_ProjectTaskUserXRef>> AddProjectTaskUserXRef([FromBody] Postgre_ProjectTaskUserXRef newUser)
+        {
+            if (newUser == null)
+            {
+                return BadRequest("Invalid customer data.");
+            }
+            try
+            {
+                var insertedCustomer = await _dbContext.InserProjectTaskUserXRefAsync(newUser);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving data from SQL: " + ex.Message);
+            }
+            return newUser;
+        }
+        [HttpPost]
+        public async Task<ActionResult<Postgre_UserOrganizationXRef>> AddUserOrganizationXRef([FromBody] Postgre_UserOrganizationXRef newUser)
+        {
+            if (newUser == null)
+            {
+                return BadRequest("Invalid customer data.");
+            }
+            try
+            {
+                var insertedCustomer = await _dbContext.InsertUserOrganizationXRefAsync(newUser);
             }
             catch (Exception ex)
             {
