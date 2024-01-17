@@ -17,6 +17,11 @@ namespace ManagementDashboard_Entities
         public string? Database { get; set; }
     }
 
+    public class SQLConnectionStrings
+    {
+        public string SQLConnectionString { get; set; }
+    }
+
     public static class AppConfig
     {
         public static string BaseUrl { get; set; }

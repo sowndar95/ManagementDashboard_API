@@ -316,7 +316,7 @@ namespace ManagementDashboard_Services
                 entryCounts = entryCount;
             }
 
-           UserProfile employee = await _userProfileService.GetEmployeeById(userId);
+            UserProfile employee = await _userProfileService.GetEmployeeById(userId);
             //employees = await _userProfileService.GetEmployeesListByManager(managerId);
 
             if (employee != null)
@@ -357,7 +357,7 @@ namespace ManagementDashboard_Services
                     dtfromDate = day.AddDays(1);
                 }
             }
-            
+
 
             if (lstUserTimesheet.Count > 0)
             {
@@ -441,7 +441,114 @@ namespace ManagementDashboard_Services
             lstNonSplitEntries = lstNonSplitEntries.Where(l => l.Count > 0).OrderByDescending(x => x.Count).ThenBy(u => u.UserName).ToList();
 
             return lstNonSplitEntries;
-            }
-            #endregion
         }
+        #endregion
+
+
+        #region Timesheet Approval
+        public async Task<List<TimeSheetApproval>> GetTimesheetApprovalStatus(Guid mangerId, DateTime fromDate, DateTime toDate)
+        {
+            //UserTimesheetDetailsModel userTimesheet = new UserTimesheetDetailsModel();
+            List<TimeSheetApproval> list = new List<TimeSheetApproval>();
+            //List<UserTimesheetInHours> userApprovalStatus = new List<UserTimesheetInHours>();
+            //List<UserTimesheetInHours> lstUserTimesheet = new List<UserTimesheetInHours>();
+
+            //userTimesheet.userID = timeEntry.userID;
+            //userTimesheet.OrganizationId = timeEntry.OrganizationId;
+            //userTimesheet.Fromdate = timeEntry.Fromdate;
+            //userTimesheet.ToDate = timeEntry.ToDate;
+            //userTimesheet.Option = "";
+
+            //lstUserTimesheet = GetUserTimesheetDetailsByManager(userTimesheet, null).Where(x => x.ProjectId != 8).ToList();
+            //// User's Project and Project Task display
+            //list = lstUserTimesheet.GroupBy(x => new { x.Organization, x.Project, x.ProjectTask, x.FirstName, x.LastName, x.Status, x.UserId }).Select(g => new ProjectApproval
+            //{
+            //    UserId = g.Key.UserId,
+            //    Name = g.Key.FirstName + " " + g.Key.LastName,
+            //    FirstName = g.Key.FirstName,
+            //    LastName = g.Key.LastName,
+            //    Project = g.Key.Project,
+            //    ProjectTask = g.Key.ProjectTask,
+            //    TimesheetStatus = g.Key.Status,
+            //    Status = (g.Key.Status.Equals("Client Approved")) ? "Approved" : ((g.Key.Status.Equals("Open")) ? "Not Submitted" : ((g.Key.Status.Equals("Submitted For Approval")) ? "Pending Client Approval" : ((g.Key.Status.Equals("Submitted")) ? "Approval Not Expected" : g.Key.Status))),
+            //}).OrderBy(x => x.Name).ToList();
+
+            //// Project Approval Status display
+            //userApprovalStatus = lstUserTimesheet.GroupBy(x => new { x.Organization, x.Project, x.ProjectTask, x.FirstName, x.LastName, x.Status, x.UserId }).Select(g => new UserTimesheetInHours
+            //{
+            //    UserId = g.Key.UserId,
+            //    Organization = g.Key.Organization,
+            //    Name = g.Key.FirstName + " " + g.Key.LastName,
+            //    Project = g.Key.Project,
+            //    ProjectTask = g.Key.ProjectTask,
+            //    TimesheetStatus = g.Key.Status,
+            //    Status = (g.Key.Status.Equals("Client Approved")) ? "Approved" : ((g.Key.Status.Equals("Open")) ? "Not Submitted" : ((g.Key.Status.Equals("Submitted For Approval")) ? "Pending Client Approval" : ((g.Key.Status.Equals("Submitted")) ? "Approval Not Expected" : g.Key.Status))),
+            //}).OrderBy(x => x.Name).ToList();
+
+            //List<ProjectApprovalStatus> objApprovalStatus = new List<ProjectApprovalStatus>();
+            //if (list.Count > 0)
+            //{
+            //    int index = list.Count();
+            //    int statusCount = userApprovalStatus.GroupBy(u => new { u.Name, u.TimesheetStatus, u.Project, u.ProjectTask }).Count();
+            //    int usersCount = userApprovalStatus.GroupBy(u => new { u.Name }).Count();
+            //    int SubmittedForApproval = 0;
+            //    int Submitted = 0;
+            //    int ClientApproval = 0;
+            //    int Approval = 0;
+
+            //    int Open = 0;
+            //    string[] strStatus = userApprovalStatus.Select(x => x.TimesheetStatus).Distinct().ToArray();
+            //    foreach (string strStatusItem in strStatus)
+            //    {
+            //        switch (strStatusItem.ToLower())
+            //        {
+            //            case "open":
+            //                Open = Open + userApprovalStatus.Where(x => x.TimesheetStatus.Equals(strStatusItem)).GroupBy(u => new { u.Name, u.Project, u.ProjectTask }).Count();
+            //                break;
+            //            case "submitted for approval":
+            //                SubmittedForApproval = userApprovalStatus.Where(x => x.TimesheetStatus.Equals(strStatusItem)).GroupBy(u => new { u.Name, u.Project, u.ProjectTask }).Count();
+            //                break;
+            //            case "submitted":
+            //                Submitted = userApprovalStatus.Where(x => x.TimesheetStatus.Equals(strStatusItem)).GroupBy(u => new { u.Name, u.Project, u.ProjectTask }).Count();
+            //                break;
+            //            case "client approved":
+            //                ClientApproval = userApprovalStatus.Where(x => x.TimesheetStatus.Equals(strStatusItem)).GroupBy(u => new { u.Name, u.Project, u.ProjectTask }).Count();
+            //                break;
+            //            case "approved":
+            //                Approval = userApprovalStatus.Where(x => x.TimesheetStatus.Equals(strStatusItem)).GroupBy(u => new { u.Name, u.Project, u.ProjectTask }).Count();
+            //                break;
+            //        }
+            //    }
+
+            //    ProjectApprovalStatus userStatus = new ProjectApprovalStatus();
+            //    userStatus.ItemName = "Users";
+            //    userStatus.ItemValue = usersCount + "(" + statusCount + ")";
+            //    objApprovalStatus.Add(userStatus);
+
+            //    ProjectApprovalStatus openStatus = new ProjectApprovalStatus();
+            //    openStatus.ItemName = "Not Submitted";
+            //    openStatus.ItemValue = Open > 0 ? Open.ToString() : "0";
+            //    objApprovalStatus.Add(openStatus);
+
+            //    ProjectApprovalStatus submittedForapprovalStatus = new ProjectApprovalStatus();
+            //    submittedForapprovalStatus.ItemName = "Pending Client Approval";
+            //    submittedForapprovalStatus.ItemValue = SubmittedForApproval > 0 ? SubmittedForApproval.ToString() : "0";
+            //    objApprovalStatus.Add(submittedForapprovalStatus);
+
+            //    ProjectApprovalStatus clientApprovedStatus = new ProjectApprovalStatus();
+            //    int approvedCount = ClientApproval + Approval;
+            //    clientApprovedStatus.ItemName = "Approved";
+            //    clientApprovedStatus.ItemValue = approvedCount > 0 ? approvedCount.ToString() : "0";
+            //    objApprovalStatus.Add(clientApprovedStatus);
+
+            //    ProjectApprovalStatus submittedStatus = new ProjectApprovalStatus();
+            //    submittedStatus.ItemName = "Approval Not Expected";
+            //    submittedStatus.ItemValue = Submitted > 0 ? Submitted.ToString() : "0";
+            //    objApprovalStatus.Add(submittedStatus);
+            //    list[--index].listProjectApprovalStatus = objApprovalStatus;
+            //}
+            return list;
+        }
+        #endregion
     }
+}

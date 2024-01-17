@@ -66,5 +66,22 @@ namespace Management_Dashboard.Controllers
             var result = await ((TimeSheetService)service).GetNonSplitTimesheetEntriesByUserByWeekly(mangerId, fromDate, entryCount, userId);
             return result.ToList();
         }
+
+        /// <summary>
+        /// Get TimeSheet Approval Report by Manager by Weekly.
+        /// </summary>
+        /// <remarks>
+        /// This method is used to retrive TimeSheet Approval Report of the provided ManagerID
+        /// </remarks>
+        /// <param name="mangerId">The unique identifier of the manager.</param>
+        /// <param name="fromDate">Date from which the report generated.</param>
+        /// <param name="toDate">Date till which the report generated.</param>
+        /// <response code="200">Returns TimeSheet Approval by Weekly Report.</response>
+        [HttpGet]
+        public async Task<ActionResult<IList<TimeSheetApproval>>> GetTimesheetApprovalStatus(Guid mangerId, DateTime fromDate, DateTime toDate)
+        {
+            var result = await ((TimeSheetService)service).GetTimesheetApprovalStatus(mangerId, fromDate, toDate);
+            return result.ToList();
+        }        
     }
 }

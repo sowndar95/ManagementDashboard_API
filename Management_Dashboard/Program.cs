@@ -1,7 +1,9 @@
 using Management_Dashboard.Filters;
 using Management_Dashboard.Services;
 using ManagementDashboard_Entities;
+using ManagementDashboard_Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
@@ -14,6 +16,12 @@ var applicationSettings = builder.Configuration.GetSection(nameof(ApplicationSet
 builder.Services.Configure<ApplicationSettings>(options => builder.Configuration.GetSection(nameof(ApplicationSettings)).Bind(options));
 builder.Services.AddSingleton<ApplicationSettings>(x => x.GetRequiredService<IOptions<ApplicationSettings>>().Value);
 builder.Services.AddSingleton<IMongoClient>(new MongoClient(applicationSettings!.DatabaseSettings.ConnectionString));
+
+builder.Services.Configure<SQLConnectionStrings>(builder.Configuration.GetSection(nameof(SQLConnectionStrings)));
+builder.Services.AddSingleton<SQLConnectionStrings>(x => x.GetRequiredService<IOptions<SQLConnectionStrings>>().Value);
+
+builder.Services.AddDbContext<PostgreSQLDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQLConnectionString")));
 
 //MongoDB Configuration
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>

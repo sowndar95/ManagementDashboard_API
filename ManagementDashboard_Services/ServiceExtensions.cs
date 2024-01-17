@@ -14,6 +14,7 @@ namespace Management_Dashboard.Services
             service.AddScoped<TimeSheetService>();
             service.AddScoped<CustomerService>();
             service.AddScoped<ProjectService>();
+            service.AddScoped<AdminService>();
 
             return service;
         }
